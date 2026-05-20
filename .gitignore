@@ -1,0 +1,36 @@
+node_modules/
+dist/
+release/
+.vite/
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Editor caches
+.vscode/
+.idea/
+
+# Local env / secrets — never commit
+.env
+.env.*
+*.pem
+*.key
+secrets.json
+.openai-key
+.openai_api_key
+
+# Session data (just in case anyone symlinks it into the repo for debugging)
+sessions/
+*.webm
+*.pcm
+
+# Build artifacts
+*.tgz
+*.zip
