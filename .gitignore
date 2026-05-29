@@ -26,8 +26,9 @@ secrets.json
 .openai-key
 .openai_api_key
 
-# Session data (just in case anyone symlinks it into the repo for debugging)
-sessions/
+# Session data (just in case anyone symlinks it into the repo for debugging).
+# Anchored to the repo root so it doesn't swallow src/renderer/sessions/.
+/sessions/
 *.webm
 *.pcm
 
