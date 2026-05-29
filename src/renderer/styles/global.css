@@ -134,6 +134,22 @@ textarea:focus-visible {
   animation: st-fade-in 240ms cubic-bezier(.2, .9, .4, 1) both;
 }
 
+/* Indeterminate progress bar (used while a phase has no countable steps) */
+@keyframes st-indeterminate {
+  0% { left: -40%; }
+  100% { left: 100%; }
+}
+
+/* Soft pulse for the "working / don't close" indicator */
+@keyframes st-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.45; transform: scale(0.82); }
+}
+
+.st-pulse {
+  animation: st-pulse 1.3s ease-in-out infinite;
+}
+
 /* Make text selectable inside transcript / inputs */
 pre, code {
   user-select: text;

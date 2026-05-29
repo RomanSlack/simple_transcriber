@@ -81,9 +81,13 @@ export function Recorder({ settings, onOpenSettings, onOpenTranscript }: Props) 
       // Refresh the list when a recovery operation touches a session.
       refreshSessions();
     });
+    // Imports register their session before transcoding finishes; refresh so the
+    // new "encoding" row shows up immediately.
+    const offChanged = api.sessions.onChanged(() => refreshSessions());
     return () => {
       off();
       offRec();
+      offChanged();
     };
   }, []);
 
@@ -154,7 +158,9 @@ export function Recorder({ settings, onOpenSettings, onOpenTranscript }: Props) 
 
   const runTranscribe = (id: string) => {
     api.transcribe.run(id).then((r) => {
-      if (!r.ok) {
+      if (r.cancelled) {
+        toast.push('Stopped', 'info');
+      } else if (!r.ok) {
         setError(r.error ?? 'Transcription failed');
         toast.push(r.error ?? 'Transcription failed', 'error');
       } else {
@@ -164,12 +170,18 @@ export function Recorder({ settings, onOpenSettings, onOpenTranscript }: Props) 
     });
   };
 
+  const stopProcessing = async (id: string) => {
+    await api.transcribe.cancel(id);
+    refreshSessions();
+  };
+
   const pickImport = async () => {
     setError(null);
     const filePath = await api.importer.pickFile();
     if (!filePath) return;
     try {
       const id = await api.importer.fromPath(filePath);
+      if (!id) return; // user stopped the import
       await refreshSessions();
       toast.push('Imported · transcribing…', 'info');
       runTranscribe(id);
@@ -204,6 +216,8 @@ export function Recorder({ settings, onOpenSettings, onOpenTranscript }: Props) 
           activeProgress={progress}
           onOpen={onOpenTranscript}
           onRefresh={refreshSessions}
+          onRetry={runTranscribe}
+          onStop={stopProcessing}
         />
       </Surface>
     </DropZone>

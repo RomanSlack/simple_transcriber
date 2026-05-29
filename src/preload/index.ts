@@ -56,6 +56,20 @@ const api = {
     delete: (id: string): Promise<void> => ipcRenderer.invoke('sessions:delete', id),
     exportTranscript: (id: string, defaultName: string) =>
       ipcRenderer.invoke('dialog:exportTranscript', { id, defaultName }),
+    exportAudio: (
+      id: string,
+      defaultName: string,
+    ): Promise<{ ok: boolean; path?: string; error?: string }> =>
+      ipcRenderer.invoke('dialog:exportAudio', { id, defaultName }),
+    reveal: (id: string): Promise<{ ok: boolean }> =>
+      ipcRenderer.invoke('shell:revealSession', id),
+    onChanged: (cb: () => void) => {
+      const listener = () => cb();
+      ipcRenderer.on('sessions:changed', listener);
+      return () => {
+        ipcRenderer.removeListener('sessions:changed', listener);
+      };
+    },
   },
   theme: {
     get: (): Promise<ThemeState> => ipcRenderer.invoke('theme:get'),
@@ -88,8 +102,9 @@ const api = {
     },
   },
   transcribe: {
-    run: (id: string): Promise<{ ok: boolean; error?: string }> =>
+    run: (id: string): Promise<{ ok: boolean; error?: string; cancelled?: boolean }> =>
       ipcRenderer.invoke('transcribe:run', id),
+    cancel: (id: string): Promise<boolean> => ipcRenderer.invoke('transcribe:cancel', id),
     onProgress: (cb: (p: TranscribeProgress) => void) => {
       const listener = (_e: unknown, p: TranscribeProgress) => cb(p);
       ipcRenderer.on('transcribe:progress', listener);
@@ -101,7 +116,7 @@ const api = {
   },
   importer: {
     pickFile: (): Promise<string | null> => ipcRenderer.invoke('import:pickFile'),
-    fromPath: (sourcePath: string): Promise<string> =>
+    fromPath: (sourcePath: string): Promise<string | null> =>
       ipcRenderer.invoke('import:fromPath', sourcePath),
     getDroppedFilePath: (file: File): string => webUtils.getPathForFile(file),
   },

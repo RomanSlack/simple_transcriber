@@ -51,6 +51,7 @@ export function DropZone({ onImported, onError, children }: Props) {
         return;
       }
       const id = await api.importer.fromPath(filePath);
+      if (!id) return; // user stopped the import — not an error
       onImported(id);
     } catch (err) {
       onError((err as Error).message);

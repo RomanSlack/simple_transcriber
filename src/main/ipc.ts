@@ -33,6 +33,7 @@ import {
   testRecord as testLinuxRecord,
 } from './linux-loopback';
 import { runTranscription } from './transcribe';
+import { beginCancellable, finishCancellable, cancel } from './cancel';
 import type {
   AppSettings,
   SessionMeta,
@@ -161,13 +162,20 @@ export function registerIpc(ipc: IpcMain) {
     const emit = (p: TranscribeProgress) => {
       sender?.webContents.send('transcribe:progress', p);
     };
+    const controller = beginCancellable(sessionId);
     try {
-      await runTranscription(sessionId, emit);
+      await runTranscription(sessionId, emit, controller.signal);
       return { ok: true };
     } catch (err) {
+      if ((err as any)?.cancelled) return { ok: false, cancelled: true };
       return { ok: false, error: (err as Error).message };
+    } finally {
+      finishCancellable(sessionId, controller);
+      broadcastSessionsChanged();
     }
   });
+
+  ipc.handle('transcribe:cancel', (_e, sessionId: string) => cancel(sessionId));
 
   ipc.handle('shell:openData', () => shell.openPath(dataPathForReveal()));
 
@@ -210,6 +218,40 @@ export function registerIpc(ipc: IpcMain) {
     return { ok: true, path: result.filePath };
   });
 
+  ipc.handle('dialog:exportAudio', async (_e, payload: { id: string; defaultName: string }) => {
+    const mp3 = path.join(sessionDir(payload.id), 'audio.mp3');
+    try {
+      await fs.access(mp3);
+    } catch {
+      return { ok: false, error: 'Audio is still being prepared — run or retry transcription first.' };
+    }
+    const win = BrowserWindow.getFocusedWindow();
+    const result = await dialog.showSaveDialog(win!, {
+      defaultPath: payload.defaultName,
+      filters: [{ name: 'MP3 Audio', extensions: ['mp3'] }],
+    });
+    if (result.canceled || !result.filePath) return { ok: false, error: 'cancelled' };
+    await fs.copyFile(mp3, result.filePath);
+    return { ok: true, path: result.filePath };
+  });
+
+  ipc.handle('shell:revealSession', async (_e, id: string) => {
+    const dir = sessionDir(id);
+    // Highlight the most relevant file if present, else just open the folder.
+    for (const name of ['audio.mp3', 'audio.webm']) {
+      const f = path.join(dir, name);
+      try {
+        await fs.access(f);
+        shell.showItemInFolder(f);
+        return { ok: true };
+      } catch {
+        /* try next */
+      }
+    }
+    await shell.openPath(dir);
+    return { ok: true };
+  });
+
   ipc.handle('import:pickFile', async (e) => {
     const win = BrowserWindow.fromWebContents(e.sender);
     const result = await dialog.showOpenDialog(win!, {
@@ -236,24 +278,52 @@ export function registerIpc(ipc: IpcMain) {
     await fs.mkdir(sessionDir(id), { recursive: true });
     const mp3Path = path.join(sessionDir(id), 'audio.mp3');
 
-    await transcodeToMp3(sourcePath, mp3Path);
-    const dur = (await getDurationSec(mp3Path)) ?? 0;
-
-    const settings = (await import('./settings')).getSettings();
     const meta: SessionMeta = {
       id,
       createdAt: new Date().toISOString(),
-      durationSec: dur,
-      model: settings.model,
+      durationSec: 0,
+      model: getSettings().model,
       micLabel: `imported · ${baseName}`,
       systemLabel: null,
       status: 'transcoding',
     };
-    const { insertSession, writeMeta } = await import('./storage');
+    // Register the session up-front so it shows in the list as "encoding"
+    // immediately — transcoding a long video to mp3 can take minutes, and the
+    // user should see it's working rather than staring at an empty list.
     insertSession(meta);
     await writeMeta(meta);
+    broadcastSessionsChanged();
+
+    const controller = beginCancellable(id);
+    try {
+      await transcodeToMp3(sourcePath, mp3Path, controller.signal);
+    } catch (err) {
+      // Either an unsupported/unreadable file or a user stop — in both cases
+      // there's nothing usable yet, so drop the in-progress session.
+      await deleteSession(id);
+      broadcastSessionsChanged();
+      finishCancellable(id, controller);
+      // Custom error fields don't survive IPC, so signal a user-cancel by
+      // returning null rather than throwing (real failures still throw).
+      if (controller.signal.aborted || (err as any)?.name === 'AbortError') {
+        return null;
+      }
+      throw err;
+    }
+    finishCancellable(id, controller);
+
+    const dur = (await getDurationSec(mp3Path)) ?? 0;
+    updateSession(id, { durationSec: dur });
+    await writeMeta(getSession(id)!);
+    broadcastSessionsChanged();
     return id;
   });
+}
+
+function broadcastSessionsChanged() {
+  for (const w of BrowserWindow.getAllWindows()) {
+    if (!w.isDestroyed()) w.webContents.send('sessions:changed');
+  }
 }
 
 function newImportSessionId(): string {
