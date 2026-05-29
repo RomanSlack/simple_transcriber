@@ -1,0 +1,45 @@
+name: Release
+
+# Builds installers for all three platforms and attaches them to a GitHub
+# Release. End users just download the installer — no Node, no build tools.
+#
+# To cut a release: bump "version" in package.json, commit, then push a matching
+# tag, e.g.  git tag v0.1.0 && git push origin v0.1.0
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch: # allows a manual run from the Actions tab (no upload)
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      # keytar needs libsecret to compile on Linux.
+      - name: Install Linux build deps
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y libsecret-1-dev
+
+      - run: npm ci
+
+      - name: Build and publish
+        run: npm run build && npx electron-builder --publish always
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # No Apple/Windows signing certs in CI — skip auto-discovery so the
+          # build doesn't try (and fail) to sign.
+          CSC_IDENTITY_AUTO_DISCOVERY: false

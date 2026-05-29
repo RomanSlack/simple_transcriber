@@ -8,7 +8,17 @@ A desktop app that records your microphone and the audio playing through your sp
 
 Intended use: meeting and call recordings where you want a single text transcript that includes both what you said and what the other participants said, without running a separate recorder app and a separate transcription script.
 
-## Install
+## Download
+
+Grab a ready-to-run installer from the [Releases page](https://github.com/RomanSlack/simple_transcriber/releases) — no build tools required:
+
+- **Windows:** `Simple Transcriber-Setup-<version>.exe` — double-click, click through the wizard.
+- **macOS:** `Simple Transcriber-<version>.dmg` — drag to Applications.
+- **Linux:** `Simple Transcriber-<version>.AppImage` (portable) or the `.deb`.
+
+Installers are unsigned, so Windows SmartScreen / macOS Gatekeeper will warn on first launch — see [INSTALL.md](INSTALL.md) for the one-time "open anyway" step.
+
+## Build from source
 
 See [INSTALL.md](INSTALL.md) for per-platform instructions, prerequisites, and packaging commands.
 

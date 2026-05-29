@@ -12,6 +12,10 @@ asarUnpack:
   - "**/node_modules/ffmpeg-static/**"
   - "**/node_modules/better-sqlite3/**"
   - "**/node_modules/keytar/**"
+publish:
+  provider: github
+  owner: RomanSlack
+  repo: simple_transcriber
 linux:
   target:
     - AppImage
@@ -20,7 +24,24 @@ linux:
   icon: assets/icon.png
 win:
   target: nsis
-  icon: assets/icon.png
+  icon: assets/icon.ico
+nsis:
+  oneClick: false
+  perMachine: false
+  allowElevation: true
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: Simple Transcriber
+  runAfterFinish: true
+  deleteAppDataOnUninstall: false
+  installerIcon: assets/icon.ico
+  uninstallerIcon: assets/icon.ico
+  installerHeaderIcon: assets/icon.ico
+  installerHeader: assets/installerHeader.bmp
+  installerSidebar: assets/installerSidebar.bmp
+  uninstallerSidebar: assets/uninstallerSidebar.bmp
+  artifactName: ${productName}-Setup-${version}.${ext}
 mac:
   target: dmg
   category: public.app-category.productivity

@@ -2,9 +2,14 @@
 
 How to run the app from source on your machine, and how to produce installable packages for Linux / Windows / macOS.
 
+> **Just want to use the app?** Download a prebuilt installer from the
+> [Releases page](https://github.com/RomanSlack/simple_transcriber/releases) and skip this entire
+> document — the build toolchain below is **only** needed to compile from source. Releases are
+> produced automatically by GitHub Actions (`.github/workflows/release.yml`) on each tagged version.
+
 ---
 
-## Prerequisites (all platforms)
+## Prerequisites (all platforms — source builds only)
 
 - **Node.js 20 or 22 LTS** — [nodejs.org](https://nodejs.org) or [nvm](https://github.com/nvm-sh/nvm)
 - **Git**
