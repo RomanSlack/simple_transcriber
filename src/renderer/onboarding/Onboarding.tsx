@@ -311,6 +311,7 @@ function SystemAudioStep({
         title="System audio"
         subtitle="Capture whatever your speakers play — your meeting will keep working normally."
       />
+      <HeadphonesWarning />
       {blackHoleMissing ? (
         <BlackHoleHelp />
       ) : (
@@ -412,6 +413,32 @@ function Footer({ left, right }: { left?: React.ReactNode; right: React.ReactNod
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 }}>
       <div>{left}</div>
       <div>{right}</div>
+    </div>
+  );
+}
+
+function HeadphonesWarning() {
+  return (
+    <div
+      style={{
+        display: 'flex',
+        gap: 10,
+        alignItems: 'flex-start',
+        fontSize: 13,
+        lineHeight: 1.5,
+        color: 'var(--text)',
+        padding: '11px 14px',
+        borderRadius: 12,
+        background: 'var(--bg)',
+        boxShadow: 'inset 3px 3px 6px var(--shadow-dark), inset -3px -3px 6px var(--shadow-light)',
+      }}
+    >
+      <span style={{ fontSize: 16, lineHeight: 1.2, flexShrink: 0 }}>🎧</span>
+      <span>
+        <strong style={{ color: 'var(--warn)' }}>Wear headphones while recording.</strong>{' '}
+        If audio plays through speakers, your mic picks it up too — the other person gets recorded
+        twice and the transcript comes out echoey and garbled. Headphones keep the two sides clean.
+      </span>
     </div>
   );
 }

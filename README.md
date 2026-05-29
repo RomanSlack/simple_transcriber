@@ -41,6 +41,19 @@ That puts a searchable "Simple Transcriber" entry in your launcher.
 
 You can also drag any audio or video file onto the window to transcribe it.
 
+> ### ⚠️ Wear headphones while recording
+>
+> The app captures your **microphone** and your **system audio** as two separate
+> streams and mixes them. If your system audio plays out of **speakers**, your
+> microphone will also pick it up — so the other party's voice gets recorded
+> twice (once cleanly from the system capture, once as bleed through your mic,
+> slightly delayed). That overlap muddies the mix and noticeably degrades the
+> transcript (echoey, doubled, or garbled words).
+>
+> **Use headphones or earbuds** so the mic only hears you. This applies to both
+> humans and any automated/agent setups — a headless machine playing call audio
+> through speakers near an open mic will produce corrupted recordings.
+
 ## How it works
 
 - **Microphone:** `getUserMedia` with WebRTC AGC/noise-suppression/echo-cancellation disabled so the app doesn't fight your call software's processing.

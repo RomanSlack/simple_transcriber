@@ -163,6 +163,22 @@ The installer creates a Start Menu entry and desktop shortcut. To uninstall, use
 
 ---
 
+## Recording quality — use headphones
+
+The app records your **microphone** and your **system audio** separately and mixes them. If
+system audio comes out of **speakers**, the microphone also captures it, so the other party's
+voice is recorded twice — once cleanly, once as delayed bleed through the mic. The result is an
+echoey/doubled mix that transcribes poorly.
+
+**Wear headphones or earbuds** so the mic only picks up your own voice. This is the single most
+common cause of bad transcripts.
+
+> **Automated / agent installs:** the same rule applies to unattended setups. A machine that
+> plays call or meeting audio through speakers within range of an open microphone will produce
+> corrupted recordings. Route playback to a headset, a virtual sink, or capture system audio only.
+
+---
+
 ## API key
 
 On any platform, after install:
