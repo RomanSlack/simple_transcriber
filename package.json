@@ -1,6 +1,6 @@
 {
   "name": "simple-transcriber",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Cross-platform meeting transcriber — record mic + system audio and get a transcript via OpenAI",
   "main": "dist/main/index.js",
   "author": {
